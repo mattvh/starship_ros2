@@ -11,14 +11,15 @@ class FrontierFinder:
         self.search()
         self.publishMarkers()
     
+    # Search for frontier points
     def search(self):
         for i in range(0, len(self.map.data)):
             if self.isFrontierPoint(i):
                 self.frontierPoints.append(self.indexToPose(i))
     
-    #Determine if an index in the map is a frontier point, meaning it is unexplored and adjacent
-    #to area that has already been expored.
-    #OccupancyGrid uses -1 for unexplored area, 0 for free, 1-100 for propability of obstacle
+    # Determine if an index in the map is a frontier point, meaning it is unexplored and adjacent
+    # to area that has already been expored.
+    # OccupancyGrid uses -1 for unexplored area, 0 for free, 1-100 for propability of obstacle
     def isFrontierPoint(self, i):
         if self.map.data[i] == -1: #point is unexplored
             adj = [i+1, i-1, i+self.map.info.width, i-self.map.info.width] #adjacent indices
@@ -28,11 +29,13 @@ class FrontierFinder:
                         return True
         return False
     
+    # Convert a linear OccupancyGrid index to an (x,y) tuple
     def indexToXY(self, i):
         x = i // self.map.info.width
         y = i % self.map.info.height
         return (x, y)
     
+    # Convert an OccupancyGrid array index to a world Pose object
     def indexToPose(self, i):
         mapXY = self.indexToXY(i)
         res = self.map.info.resolution
