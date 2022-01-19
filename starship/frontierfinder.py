@@ -62,12 +62,12 @@ class FrontierFinder:
             marker.ns = 'Frontier'
             marker.header.frame_id = "map"
             marker.header.stamp = now.to_msg()
-            marker.type = marker.SPHERE
+            marker.type = marker.CUBE
             marker.action = marker.ADD
-            marker.scale.x = 0.03
-            marker.scale.y = 0.03
-            marker.scale.z = 0.03
-            marker.color = ColorRGBA(r=0.5, g=0., b=0.5, a=0.8)
+            marker.scale.x = self.map.info.resolution
+            marker.scale.y = self.map.info.resolution
+            marker.scale.z = self.map.info.resolution
+            marker.color = ColorRGBA(r=0.5, g=0.0, b=0.5, a=1.0)
             marker.pose.orientation.w = 1.0
             marker.pose.position = self.frontierPoints[i].position
             markers.markers.append(marker)
