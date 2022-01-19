@@ -25,7 +25,7 @@ class FrontierFinder:
             adj = [i+1, i-1, i+self.map.info.width, i-self.map.info.width] #adjacent indices
             for p in adj:
                 if p >= 0 and p < len(self.map.data):
-                    if self.map.data[p] != -1: #adjacent point is explored
+                    if self.map.data[p] != -1 and self.map.data[p] < 5: #adjacent point is explored
                         return True
         return False
     
