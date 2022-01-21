@@ -1,6 +1,3 @@
-import dataclasses
-from platform import mac_ver
-from re import M
 import cv2
 import numpy as np
 
@@ -10,7 +7,7 @@ class FloodFill:
         self.map = node.map
         self.image = self.getImage()
         cv2.imshow("map", self.image)
-        #self.edgeDetectionTest()
+        self.edgeDetectionTest()
         cv2.waitKey(1)
     
     # Turn the OccupancyGrid into an OpenCV image/numpy array
