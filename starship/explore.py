@@ -7,7 +7,6 @@ from rclpy.qos import QoSProfile
 from visualization_msgs.msg import MarkerArray
 
 from starship.frontierfinder import FrontierFinder
-from starship.floodfill import FloodFill
 
 
 class Explorer(Node):
@@ -36,7 +35,6 @@ class Explorer(Node):
     def handleOccupancyGrid(self, data):
         self.map = data
         FrontierFinder(self)
-        FloodFill(self)
 
 
 def main(args=None):

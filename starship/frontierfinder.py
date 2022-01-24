@@ -1,3 +1,4 @@
+from starship.edgedetection import EdgeDetection
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 from std_msgs.msg import ColorRGBA
@@ -8,7 +9,8 @@ class FrontierFinder:
         self.node = node
         self.map = node.map
         self.frontierPoints = []
-        self.search()
+        #self.search()
+        self.frontierPoints = EdgeDetection(self.node).toPoses()
         self.publishMarkers()
     
     # Search for frontier points
