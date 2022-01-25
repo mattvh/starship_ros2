@@ -60,6 +60,22 @@ class EdgeDetection:
                     edges[y, x] = 0
         return edges
 
+
+    def targetPoints(self):
+        targets = []
+        #lines = cv2.HoughLinesP(self.edges, rho=1, theta=1*np.pi/180, threshold=16, minLineLength=25, maxLineGap=250)
+        #for line in lines:
+        #    y1, x1, y2, x2 = line[0]
+        #    targets.append(self.pixelToPose(y1, x1))
+        #    targets.append(self.pixelToPose(y2, x2))
+        #contours, hierarchy = cv2.findContours(self.edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        #indices = np.where(self.edges != [0])
+        #coordinates = zip(indices[0], indices[1])
+        #for c in coordinates:
+        #    print(c)
+            #targets.append(self.pixelToPose(c[1], c[0]))
+        return targets
+
     
     # Convert the edge pixels to ROS Poses
     def toPoses(self):
@@ -69,12 +85,19 @@ class EdgeDetection:
         for mapY in range(0, height-1):
             for mapX in range(0, width-1):
                 if self.edges[mapY, mapX] != 0:
-                    x = (mapX * res) + self.map.info.origin.position.x + (res/2)
-                    y = (mapY * res) + self.map.info.origin.position.y + (res/2)
-                    pose = Pose()
-                    pose.position.x = x
-                    pose.position.y = y
-                    pose.position.z = 0.0
-                    pose.orientation.w = 1.0
+                    pose = self.pixelToPose(mapX, mapY)
                     poses.append(pose)
         return poses
+    
+
+    # Utility method to convert a given pixel x,y coordinate to a ROS Pose
+    def pixelToPose(self, pixelX, pixelY):
+        res = self.map.info.resolution
+        x = (pixelX * res) + self.map.info.origin.position.x + (res/2)
+        y = (pixelY * res) + self.map.info.origin.position.y + (res/2)
+        pose = Pose()
+        pose.position.x = x
+        pose.position.y = y
+        pose.position.z = 0.0
+        pose.orientation.w = 1.0
+        return pose

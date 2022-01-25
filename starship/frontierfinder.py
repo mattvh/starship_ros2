@@ -10,7 +10,9 @@ class FrontierFinder:
         self.map = node.map
         self.frontierPoints = []
         #self.search()
-        self.frontierPoints = EdgeDetection(self.node).toPoses()
+        edgeDetection = EdgeDetection(self.node)
+        self.frontierPoints = edgeDetection.toPoses()
+        self.targetPoints = edgeDetection.targetPoints() 
         self.publishMarkers()
     
     # Search for frontier points
@@ -57,6 +59,7 @@ class FrontierFinder:
     def publishMarkers(self):
         coords = [(0.0,0.0), (0.0, 0.5), (0.0, 1.0), (0.5, 0.0), (1.0, 0.0)]
         markers = MarkerArray()
+        # Frontier Points
         for i in range(0, len(self.frontierPoints)):
             now = self.node.get_clock().now()
             marker = Marker()
@@ -72,5 +75,21 @@ class FrontierFinder:
             marker.color = ColorRGBA(r=0.5, g=0.0, b=0.5, a=1.0)
             marker.pose.orientation.w = 1.0
             marker.pose.position = self.frontierPoints[i].position
+            markers.markers.append(marker)
+        # Target Points
+        for i in range(len(self.targetPoints)):
+            marker = Marker()
+            marker.id = i
+            marker.ns = 'FrontierTarget'
+            marker.header.frame_id = "map"
+            marker.header.stamp = now.to_msg()
+            marker.type = marker.SPHERE
+            marker.action = marker.ADD
+            marker.scale.x = self.map.info.resolution * 2
+            marker.scale.y = self.map.info.resolution * 2
+            marker.scale.z = self.map.info.resolution * 2
+            marker.color = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)
+            marker.pose.orientation.w = 1.0
+            marker.pose.position = self.targetPoints[i].position
             markers.markers.append(marker)
         self.node.markerPub.publish(markers)
