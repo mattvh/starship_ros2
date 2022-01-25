@@ -6,6 +6,7 @@ class EdgeDetection:
     def __init__(self, node):
         self.node = node
         self.map = node.map
+        self.occupiedThresh = 50
         self.image = self.getImage()
         self.edges = self.edgeDetection()
         self.debugImage()
@@ -22,8 +23,15 @@ class EdgeDetection:
     # then replaces -1 with 128 before converting the image to unsigned bytes.
     # PGM image files also use a mid-grey for unexplored space, treating near-zero
     # as free space, near-255 as an obstacle and the middle as unknown.
+    # While doing this, the map is cleaned up to create harder edges.
+    # The only values in the map image should be 0 for free space, 128 for unknown
+    # and 255 for an obstacle.
     def getImage(self):
         data = np.asarray(self.map.data, dtype=np.int16).reshape(self.map.info.height, self.map.info.width)
+        mask_obs = np.logical_and(data > self.occupiedThresh, data < 255)
+        mask_free = np.logical_and(data >= 0, data < self.occupiedThresh)
+        data[mask_free] = 255
+        data[mask_obs] = 0
         data[data < 0] = 128
         data = data.astype(np.uint8)
         return data
@@ -31,9 +39,7 @@ class EdgeDetection:
 
     # Find the frontier pixels with edge detection
     def edgeDetection(self):
-        # Blur the image and perform Canny Edge Detection with a tight threshold
-        blurred = cv2.GaussianBlur(self.image, (5, 5), 0)
-        edges = cv2.Canny(blurred,10,200)
+        edges = cv2.Canny(self.image,10,200)
         # Iterate the resulting image and remove non-frontier edges by setting
         # the pixel color to black if the corresponding pixel in the raw map image
         # has a neighbor pixel with the unexplored gray color.
@@ -45,10 +51,13 @@ class EdgeDetection:
                 for p in adj:
                     if p[0] < 0 or p[0] > width or p[1] < 0 or p[1] > height:
                         continue
+                    if self.image[p[1], p[0]] == 0:
+                        edges[y, x] = 0
+                        break
                     if edges[y, x] != 0 and self.image[p[1], p[0]] == 128:
                         frontPix = True #white edge pixel and unexplored map pixel
                 if not frontPix:
-                    edges[p[1], p[0]] = 0
+                    edges[y, x] = 0
         return edges
 
     
