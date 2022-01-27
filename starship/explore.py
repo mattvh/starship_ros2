@@ -4,18 +4,35 @@ from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Pose, Point
 from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy
 from rclpy.qos import QoSProfile
+from rclpy.action import ActionClient
+from rclpy.duration import Duration
+from nav2_msgs.action import FollowWaypoints
 from visualization_msgs.msg import MarkerArray
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener 
+from tf2_ros import TransformException
 
 from starship.frontierfinder import FrontierFinder
+from starship.navigator import Navigator
+
+import random
 
 
 class Explorer(Node):
     def __init__(self):
         super().__init__('explorer')
         self.map = OccupancyGrid()
+        self.robotPose = None
+        self.target = None
+        self.registerParameters()
         self.registerSubscribers()
         self.registerPublishers()
+        self.poseTimer = self.create_timer(0.1, self.checkRobotPose)
+        self.navigator = Navigator(self)
     
+    def registerParameters(self):
+        self.declare_parameter('drive', True)
+
     def registerSubscribers(self):
         map_qos = QoSProfile(
           durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
@@ -23,6 +40,8 @@ class Explorer(Node):
           history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
           depth=1)
         self.create_subscription(OccupancyGrid(), '/map', self.handleOccupancyGrid, map_qos)
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
     
     def registerPublishers(self):
         marker_qos = QoSProfile(
@@ -31,15 +50,42 @@ class Explorer(Node):
           history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
           depth=1)
         self.markerPub = self.create_publisher(MarkerArray, 'frontiers', qos_profile=QoSProfile(depth=10))
+        self.initial_pose_pub = self.create_publisher(PoseWithCovarianceStamped, 'initialpose', 10)
     
     def handleOccupancyGrid(self, data):
         self.map = data
-        FrontierFinder(self)
+        finder = FrontierFinder(self)
+        if len(finder.targetPoints) > 0:
+            self.target = finder.targetPoints[0]
+            #self.target = finder.frontierPoints[random.randint(0, len(finder.frontierPoints)-1)]
+
+    def checkRobotPose(self):
+        from_frame = 'base_link'
+        to_frame = 'map'
+        try:
+            now = rclpy.time.Time()
+            dur = Duration()
+            dur.sec = 40
+            dur.nsec = 0
+            t = self.tf_buffer.lookup_transform(to_frame, from_frame, now, dur)
+            pose = PoseStamped()
+            pose.header.frame_id = to_frame
+            pose.header.stamp = rclpy.time.Time().to_msg()
+            point = Point()
+            point.x = t.transform.translation.x
+            point.y = t.transform.translation.y
+            point.z = t.transform.translation.z
+            pose.pose.position = point
+            pose.pose.orientation = t.transform.rotation
+            self.robotPose = pose
+        except TransformException as ex:
+            self.robotPose = None
+        return
 
 
 def main(args=None):
     rclpy.init(args=args)
-    print('Hi from starship!')
+    print('Starship initializing.')
     explorer = Explorer()
     rclpy.spin(explorer)
     rclpy.shutdown()

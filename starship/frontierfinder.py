@@ -1,8 +1,10 @@
+from turtle import pos
 from starship.edgedetection import EdgeDetection
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 from std_msgs.msg import ColorRGBA
 from geometry_msgs.msg import Pose, Point, Quaternion
+import math, sys
 
 class FrontierFinder:
     def __init__(self, node):
@@ -12,7 +14,10 @@ class FrontierFinder:
         #self.search()
         edgeDetection = EdgeDetection(self.node)
         self.frontierPoints = edgeDetection.toPoses()
-        self.targetPoints = edgeDetection.targetPoints() 
+        self.targetPoints = []
+        nearest = self.getNearestPose(self.frontierPoints)
+        if nearest is not None:
+            self.targetPoints.append(nearest) 
         self.publishMarkers()
     
     # Search for frontier points
@@ -54,6 +59,20 @@ class FrontierFinder:
         pose.orientation.z = 0.0
         pose.orientation.w = 1.0
         return pose
+    
+    # Find the nearest pose in the list to the robot's position
+    def getNearestPose(self, poses):
+        if self.node.robotPose == None:
+            return None
+        start = self.node.robotPose.pose
+        nearest = None
+        nearestDist = sys.float_info.max
+        for pose in poses:
+            dist = math.hypot(start.position.x-pose.position.x, start.position.y-pose.position.y)
+            if (dist < nearestDist):
+                nearest = pose
+                nearestDist = dist
+        return nearest
     
     # Publish a MarkerArray to visualize frontier points in RViz2
     def publishMarkers(self):
