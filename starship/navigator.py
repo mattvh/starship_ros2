@@ -12,6 +12,9 @@ class Navigator:
         self.timer = self.node.create_timer(1.0, self.navTimer)
     
     def navTimer(self):
+        #what this should do:
+        #Check if currently driving to a target. If not, ask the frontier finder for the
+        #next target. Do driveTo() on the target. Else, do nothing as we are driving.
         if self.node.target:
             self.driveTo(self.node.target)
     
@@ -48,9 +51,7 @@ class Navigator:
         return
     
     def waitUntilReady(self):
-        self.node.get_logger().info("Waiting for initial pose and Navigation2 action server...");
-        while not self.node.robotPose:
-            rclpy.spin_once(self.node, timeout_sec=1.0)
+        self.node.get_logger().info("Waiting for Navigation2 action server...")
         while not self.nav_pose_client.wait_for_server(timeout_sec=1.0):
             rclpy.spin_once(self.node, timeout_sec=1.0)
         self.setInitialPose()

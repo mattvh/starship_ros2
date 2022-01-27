@@ -27,6 +27,7 @@ class Explorer(Node):
         self.registerParameters()
         self.registerSubscribers()
         self.registerPublishers()
+        self.waitForInitialPose()
         self.poseTimer = self.create_timer(0.1, self.checkRobotPose)
         self.navigator = Navigator(self)
     
@@ -81,6 +82,13 @@ class Explorer(Node):
         except TransformException as ex:
             self.robotPose = None
         return
+    
+    def waitForInitialPose(self):
+        self.get_logger().info("Waiting for initial pose from TF...");
+        while not self.robotPose:
+            self.checkRobotPose()
+            rclpy.spin_once(self, timeout_sec=1.0)
+        self.get_logger().info("Initial pose found.");
 
 
 def main(args=None):
