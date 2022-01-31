@@ -45,19 +45,16 @@ class Explorer(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
     
     def registerPublishers(self):
-        marker_qos = QoSProfile(
-          durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
-          reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-          history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
-          depth=1)
         self.markerPub = self.create_publisher(MarkerArray, 'frontiers', qos_profile=QoSProfile(depth=10))
         self.initial_pose_pub = self.create_publisher(PoseWithCovarianceStamped, 'initialpose', 10)
     
     def handleOccupancyGrid(self, data):
         self.map = data
+        self.get_logger().info("Scanning frontier.")
         finder = FrontierFinder(self)
         if len(finder.targetPoints) > 0:
             self.target = finder.targetPoints[0]
+            self.get_logger().info(f"Set target to {self.target.position}")
             #self.target = finder.frontierPoints[random.randint(0, len(finder.frontierPoints)-1)]
 
     def checkRobotPose(self):
@@ -84,18 +81,21 @@ class Explorer(Node):
         return
     
     def waitForInitialPose(self):
-        self.get_logger().info("Waiting for initial pose from TF...");
+        self.get_logger().info("Waiting for initial pose from TF...")
         while not self.robotPose:
             self.checkRobotPose()
             rclpy.spin_once(self, timeout_sec=1.0)
-        self.get_logger().info("Initial pose found.");
+        self.get_logger().info("Initial pose found.")
 
 
 def main(args=None):
     rclpy.init(args=args)
     print('Starship initializing.')
     explorer = Explorer()
-    rclpy.spin(explorer)
+    while rclpy.ok():
+        rclpy.spin_once(explorer)
+        if explorer.target:
+            explorer.navigator.driveTo(explorer.target)
     rclpy.shutdown()
 
 
