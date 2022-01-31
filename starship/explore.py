@@ -53,8 +53,10 @@ class Explorer(Node):
         self.get_logger().info("Scanning frontier.")
         finder = FrontierFinder(self)
         if len(finder.targetPoints) > 0:
+            oldTarget = self.target
             self.target = finder.targetPoints[0]
-            self.get_logger().info(f"Set target to {self.target.position}")
+            if oldTarget != self.target:
+                self.get_logger().info(f"Set target to {self.target.position.x}, {self.target.position.y}")
             #self.target = finder.frontierPoints[random.randint(0, len(finder.frontierPoints)-1)]
 
     def checkRobotPose(self):
@@ -94,7 +96,7 @@ def main(args=None):
     explorer = Explorer()
     while rclpy.ok():
         rclpy.spin_once(explorer)
-        if explorer.target:
+        if explorer.target and explorer.get_parameter("drive"):
             explorer.navigator.driveTo(explorer.target)
     rclpy.shutdown()
 

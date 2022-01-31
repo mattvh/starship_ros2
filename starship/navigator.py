@@ -3,6 +3,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped, PoseStamped
 from rclpy.action import ActionClient
 from action_msgs.msg import GoalStatus
 import rclpy
+from rclpy.duration import Duration
 
 class Navigator:
     def __init__(self, node):
@@ -20,7 +21,7 @@ class Navigator:
         self.goToPose(pose)
         self.node.get_logger().info("driving loop start")
         while not self.isNavComplete():
-            self.node.get_logger().info("loop driving")
+            self.cancelGoalIfUnreachable()
             pass
     
     # Send the initial goal to the Navigation2 action server
@@ -40,7 +41,7 @@ class Navigator:
         return True
     
     # Check if navigation is complete and spin the future so the robot will drive
-    # Method adapted from Navigation2's example BasicNavigator class
+    # Method adaptedz from Navigation2's example BasicNavigator class
     def isNavComplete(self):
         if not self.resultFuture:
             return True
@@ -53,10 +54,19 @@ class Navigator:
             return False
         return True
     
+    def cancelGoalIfUnreachable(self):
+        if Duration.from_msg(self.feedback.navigation_time) > Duration(seconds=180.0):
+            self.node.get_logger().info("Not reaching goal. Canceling.")
+            if self.resultFuture:
+                future = self.goalHandle.cancel_goal_async()
+                rclpy.spin_until_future_complete(self.node, future)
+    
+    # Callback to store current feedback from nav2
     def handleUpdates(self, msg):
         self.feedback = msg.feedback
         return
     
+    # Set the initial pose of the robot to its estimated position from SLAM
     def setInitialPose(self):
         msg = PoseWithCovarianceStamped()
         msg.pose.pose = self.node.robotPose.pose
@@ -65,6 +75,7 @@ class Navigator:
         self.node.initial_pose_pub.publish(msg)
         return
     
+    # Wait until the Navigation2 action server is ready
     def waitUntilReady(self):
         self.node.get_logger().info("Waiting for Navigation2 action server...")
         while not self.navPoseClient.wait_for_server(timeout_sec=1.0):
@@ -73,6 +84,7 @@ class Navigator:
         self.node.get_logger().info("Navigation ready.")
         return
     
+    # Convert a Pose to a PoseStamped
     def poseToPoseStamped(self, pose):
         p = PoseStamped()
         p.header.frame_id = 'map'
