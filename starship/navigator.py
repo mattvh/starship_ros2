@@ -17,14 +17,12 @@ class Navigator:
     
     # Public method to begin driving to a supplied pose
     def driveTo(self, pose):
-        self.node.get_logger().info("driveTo")
         self.goToPose(pose)
-        self.node.get_logger().info("driving loop start")
         while not self.isNavComplete():
             self.cancelGoalIfUnreachable()
             pass
     
-    # Send the initial goal to the Navigation2 action server
+    # Send the goal to the Navigation2 action server
     # Method adapted from Navigation2's example BasicNavigator class
     def goToPose(self, pose):
         while not self.navPoseClient.wait_for_server(timeout_sec=1.0):
@@ -37,6 +35,7 @@ class Navigator:
         if not self.goalHandle.accepted:
             self.node.get_logger().error("Goal rejected.")
             return False
+        self.node.get_logger().info(f"Set Navigation goal to {pose.position.x}, {pose.position.y}.")
         self.resultFuture = self.goalHandle.get_result_async()
         return True
     
@@ -55,6 +54,8 @@ class Navigator:
         return True
     
     def cancelGoalIfUnreachable(self):
+        if not self.feedback:
+            return
         if Duration.from_msg(self.feedback.navigation_time) > Duration(seconds=180.0):
             self.node.get_logger().info("Not reaching goal. Canceling.")
             if self.resultFuture:
