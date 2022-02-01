@@ -94,9 +94,10 @@ def main(args=None):
     rclpy.init(args=args)
     print('Starship initializing.')
     explorer = Explorer()
+    drive = explorer.get_parameter('drive').get_parameter_value().bool_value
     while rclpy.ok():
         rclpy.spin_once(explorer)
-        if explorer.target and explorer.get_parameter("drive"):
+        if explorer.target and drive:
             explorer.navigator.driveTo(explorer.target)
     rclpy.shutdown()
 
