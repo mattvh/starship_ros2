@@ -45,12 +45,15 @@ class Explorer(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
     
     def registerPublishers(self):
-        self.markerPub = self.create_publisher(MarkerArray, 'frontiers', qos_profile=QoSProfile(depth=10))
+        self.markerPub = self.create_publisher(MarkerArray, 'frontiers', qos_profile=QoSProfile(depth=1))
         self.initial_pose_pub = self.create_publisher(PoseWithCovarianceStamped, 'initialpose', 10)
     
     def handleOccupancyGrid(self, data):
         self.map = data
         self.get_logger().info("Scanning frontier.")
+        self.getNextTarget()
+    
+    def getNextTarget(self):
         finder = FrontierFinder(self)
         if len(finder.targetPoints) > 0:
             oldTarget = self.target

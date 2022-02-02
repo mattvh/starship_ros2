@@ -17,7 +17,8 @@ class Navigator:
     
     # Public method to begin driving to a supplied pose
     def driveTo(self, pose):
-        self.goToPose(pose)
+        if self.isNavComplete():
+            self.goToPose(pose)
         while not self.isNavComplete():
             self.cancelGoalIfUnreachable()
             pass
@@ -48,6 +49,8 @@ class Navigator:
         if self.resultFuture.result():
             self.status = self.resultFuture.result().status
             if self.status != GoalStatus.STATUS_SUCCEEDED:
+                self.node.get_logger().info("Arrived. Selecting next goal.")
+                self.node.getNextTarget()
                 return True
         else:
             return False

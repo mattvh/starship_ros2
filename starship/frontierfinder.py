@@ -11,6 +11,7 @@ class FrontierFinder:
         self.node = node
         self.map = node.map
         self.frontierPoints = []
+        self.minDriveUnits = 10
         #self.search()
         edgeDetection = EdgeDetection(self.node)
         self.frontierPoints = edgeDetection.toPoses()
@@ -69,7 +70,7 @@ class FrontierFinder:
         nearestDist = sys.float_info.max
         for pose in poses:
             dist = math.hypot(start.position.x-pose.position.x, start.position.y-pose.position.y)
-            if (dist < nearestDist):
+            if (dist < nearestDist) and (dist > (self.map.info.resolution * self.minDriveUnits)):
                 nearest = pose
                 nearestDist = dist
         return nearest

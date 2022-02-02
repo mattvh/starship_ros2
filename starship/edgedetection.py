@@ -46,7 +46,7 @@ class EdgeDetection:
         height, width = edges.shape
         for y in range(0, height-1):
             for x in range(0, width-1):
-                adj = [(x+1,y), (x-1,y), (x,y+1), (x,y-1)]
+                adj = [(x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1,y+1), (x-1,y-1), (x+1,y-1), (x-1,y+1)]
                 frontPix = False
                 for p in adj:
                     if p[0] < 0 or p[0] > width or p[1] < 0 or p[1] > height:
@@ -58,7 +58,23 @@ class EdgeDetection:
                         frontPix = True #white edge pixel and unexplored map pixel
                 if not frontPix:
                     edges[y, x] = 0
+        edges = self.denoise(edges)
         return edges
+    
+
+    def denoise(self, img):
+        height, width = img.shape
+        for y in range(0, height-1):
+            for x in range(0, width-1):
+                if img[y,x] == 255:
+                    adjPix = 0
+                    adj = [(x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1,y+1), (x-1,y-1), (x+1,y-1), (x-1,y+1)]
+                    for p in adj:
+                        if img[p[1], p[0]] == 255:
+                            adjPix += 1
+                    if adjPix < 1:
+                        img[y,x] = 0
+        return img
 
 
     def targetPoints(self):
