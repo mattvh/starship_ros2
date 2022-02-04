@@ -11,6 +11,8 @@ class Navigator:
         self.goalHandle = None
         self.resultFuture = None
         self.feedback = None
+        self.status = None
+        self.goalPose = None
         node.get_logger().info("Initializing Navigator.")
         self.navPoseClient = ActionClient(node, NavigateToPose, 'navigate_to_pose')
         self.waitUntilReady()
@@ -18,6 +20,7 @@ class Navigator:
     # Public method to begin driving to a supplied pose
     def driveTo(self, pose):
         if self.isNavComplete():
+            self.checkIfNavigationAborted()
             self.goToPose(pose)
         while not self.isNavComplete():
             self.cancelGoalIfUnreachable()
@@ -37,6 +40,7 @@ class Navigator:
             self.node.get_logger().error("Goal rejected.")
             return False
         self.node.get_logger().info(f"Set Navigation goal to {pose.position.x}, {pose.position.y}.")
+        self.goalPose = pose
         self.resultFuture = self.goalHandle.get_result_async()
         return True
     
@@ -49,8 +53,6 @@ class Navigator:
         if self.resultFuture.result():
             self.status = self.resultFuture.result().status
             if self.status != GoalStatus.STATUS_SUCCEEDED:
-                self.node.get_logger().info("Arrived. Selecting next goal.")
-                self.node.getNextTarget()
                 return True
         else:
             return False
@@ -64,6 +66,11 @@ class Navigator:
             if self.resultFuture:
                 future = self.goalHandle.cancel_goal_async()
                 rclpy.spin_until_future_complete(self.node, future)
+    
+    def checkIfNavigationAborted(self):
+        if self.status != None and self.status != GoalStatus.STATUS_SUCCEEDED:
+            self.node.get_logger().info("Navigation unsuccessful. Getting new target.")
+            self.node.getNextTarget()
     
     # Callback to store current feedback from nav2
     def handleUpdates(self, msg):

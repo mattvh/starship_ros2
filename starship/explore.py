@@ -55,6 +55,9 @@ class Explorer(Node):
     
     def getNextTarget(self):
         finder = FrontierFinder(self)
+        if finder.noMoreFrontierPoints():
+            print("No more frontiers.")
+            exit()
         if len(finder.targetPoints) > 0:
             oldTarget = self.target
             self.target = finder.targetPoints[0]

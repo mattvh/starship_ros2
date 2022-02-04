@@ -75,12 +75,25 @@ class FrontierFinder:
                 nearestDist = dist
         return nearest
     
+    def noMoreFrontierPoints(self):
+        return len(self.frontierPoints) < 1
+    
     # Publish a MarkerArray to visualize frontier points in RViz2
     def publishMarkers(self):
-        coords = [(0.0,0.0), (0.0, 0.5), (0.0, 1.0), (0.5, 0.0), (1.0, 0.0)]
         markers = MarkerArray()
+        # Clear Existing Markers
+        marker = Marker()
+        marker.id = 0
+        marker.ns = 'Frontier'
+        marker.action = Marker.DELETEALL
+        markers.markers.append(marker)
+        marker = Marker()
+        marker.id = 1
+        marker.ns = 'FrontierTarget'
+        marker.action = Marker.DELETEALL
+        markers.markers.append(marker)
         # Frontier Points
-        for i in range(0, len(self.frontierPoints)):
+        for i in range(2, len(self.frontierPoints)):
             now = self.node.get_clock().now()
             marker = Marker()
             marker.id = i
