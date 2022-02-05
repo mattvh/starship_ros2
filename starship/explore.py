@@ -60,10 +60,9 @@ class Explorer(Node):
             exit()
         if len(finder.targetPoints) > 0:
             oldTarget = self.target
-            self.target = finder.targetPoints[0]
+            self.target = finder.getNextTarget()
             if oldTarget != self.target:
                 self.get_logger().info(f"Set target to {self.target.position.x}, {self.target.position.y}")
-            #self.target = finder.frontierPoints[random.randint(0, len(finder.frontierPoints)-1)]
 
     def checkRobotPose(self):
         from_frame = 'base_link'

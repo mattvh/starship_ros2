@@ -76,23 +76,26 @@ class EdgeDetection:
         return img
     
 
+    # Returns the eight pixels surrounding a given pixel
     def adjacentPixels(self, x, y):
         return [(x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1,y+1), (x-1,y-1), (x+1,y-1), (x-1,y+1)]
+    
 
-
+    # Turn the edge lines into larger solids with dilate(), then find the centroids.
+    # This returns better points to drive to than simply picking the nearest frontier point.
     def targetPoints(self):
         targets = []
-        #lines = cv2.HoughLinesP(self.edges, rho=1, theta=1*np.pi/180, threshold=16, minLineLength=25, maxLineGap=250)
-        #for line in lines:
-        #    y1, x1, y2, x2 = line[0]
-        #    targets.append(self.pixelToPose(y1, x1))
-        #    targets.append(self.pixelToPose(y2, x2))
-        #contours, hierarchy = cv2.findContours(self.edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        #indices = np.where(self.edges != [0])
-        #coordinates = zip(indices[0], indices[1])
-        #for c in coordinates:
-        #    print(c)
-            #targets.append(self.pixelToPose(c[1], c[0]))
+        # Dilate the edges to create "solids" to operate on
+        kernel = np.ones((2,2), np.uint8)
+        img = cv2.dilate(self.edges, kernel, iterations=1)
+        # Find the centroids of the newly created shapes and save the coordinates
+        contours, hierarchy = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        for c in contours:
+            M = cv2.moments(c)
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            cv2.circle(img, (cX, cY), 3, (255, 0, 0), -1)
+            targets.append(self.pixelToPose(cX, cY))
         return targets
 
     

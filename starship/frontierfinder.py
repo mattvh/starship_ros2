@@ -12,13 +12,9 @@ class FrontierFinder:
         self.map = node.map
         self.frontierPoints = []
         self.minDriveUnits = 10
-        #self.search()
         edgeDetection = EdgeDetection(self.node)
         self.frontierPoints = edgeDetection.toPoses()
-        self.targetPoints = []
-        nearest = self.getNearestPose(self.frontierPoints)
-        if nearest is not None:
-            self.targetPoints.append(nearest) 
+        self.targetPoints = edgeDetection.targetPoints()
         self.publishMarkers()
     
     # Search for frontier points
@@ -75,6 +71,11 @@ class FrontierFinder:
                 nearestDist = dist
         return nearest
     
+    # Public method to get the next target to drive to
+    def getNextTarget(self):
+        return self.getNearestPose(self.targetPoints)
+    
+    # If there are no more frontier points, we've explored the whole area
     def noMoreFrontierPoints(self):
         return len(self.frontierPoints) < 1
     
@@ -110,7 +111,8 @@ class FrontierFinder:
             marker.pose.position = self.frontierPoints[i].position
             markers.markers.append(marker)
         # Target Points
-        for i in range(len(self.targetPoints)):
+        for i in range(2, len(self.targetPoints)):
+            now = self.node.get_clock().now()
             marker = Marker()
             marker.id = i
             marker.ns = 'FrontierTarget'
