@@ -59,10 +59,12 @@ class Explorer(Node):
             print("No more frontiers.")
             exit()
         if len(finder.targetPoints) > 0:
-            oldTarget = self.target
-            self.target = finder.getNextTarget()
-            if oldTarget != self.target:
-                self.get_logger().info(f"Set target to {self.target.position.x}, {self.target.position.y}")
+            newTarget = finder.getNextTarget()
+            if newTarget is not None:
+                oldTarget = self.target
+                self.target = newTarget
+                if oldTarget != self.target:
+                    self.get_logger().info(f"Set target to {self.target.position.x}, {self.target.position.y}")
 
     def checkRobotPose(self):
         from_frame = 'base_link'
