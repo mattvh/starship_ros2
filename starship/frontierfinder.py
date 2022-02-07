@@ -1,4 +1,5 @@
 from starship.edgedetection import EdgeDetection
+from starship.naivesearch import NaiveSearch
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 from std_msgs.msg import ColorRGBA
@@ -10,9 +11,13 @@ class FrontierFinder:
         self.map = node.map
         self.frontierPoints = []
         self.minDriveUnits = 10
-        edgeDetection = EdgeDetection(self.node)
-        self.frontierPoints = edgeDetection.toPoses()
-        self.targetPoints = edgeDetection.targetPoints()
+        detector = None
+        if self.node.altSearch:
+            detector = NaiveSearch(self.node)
+        else:
+            detector = EdgeDetection(self.node)
+        self.frontierPoints = detector.toPoses()
+        self.targetPoints = detector.targetPoints()
         self.publishMarkers()
     
     # Find the nearest pose in the list to the robot's position

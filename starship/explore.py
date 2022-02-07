@@ -20,6 +20,7 @@ class Explorer(Node):
         self.map = OccupancyGrid()
         self.robotPose = None
         self.target = None
+        self.altSearch = False
         self.registerParameters()
         self.registerSubscribers()
         self.registerPublishers()
@@ -30,6 +31,7 @@ class Explorer(Node):
     # Register configuration parameters this node accepts
     def registerParameters(self):
         self.declare_parameter('drive', True)
+        self.declare_parameter('altsearch', False)
 
     # Register ROS topic subscribers
     def registerSubscribers(self):
@@ -111,6 +113,7 @@ def main(args=None):
     print('Starship initializing.')
     explorer = Explorer()
     drive = explorer.get_parameter('drive').get_parameter_value().bool_value
+    explorer.altSearch = explorer.get_parameter('altsearch').get_parameter_value().bool_value
     while rclpy.ok():
         rclpy.spin_once(explorer)
         if explorer.target and drive:
