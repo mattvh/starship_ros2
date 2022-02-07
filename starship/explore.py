@@ -27,28 +27,39 @@ class Explorer(Node):
         self.poseTimer = self.create_timer(0.1, self.checkRobotPose)
         self.navigator = Navigator(self)
     
+    # Register configuration parameters this node accepts
     def registerParameters(self):
         self.declare_parameter('drive', True)
 
+    # Register ROS topic subscribers
     def registerSubscribers(self):
+        # Subscribe to Occupancy Grid from SLAM node
         map_qos = QoSProfile(
           durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
           reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_RELIABLE,
           history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
           depth=1)
         self.create_subscription(OccupancyGrid(), '/map', self.handleOccupancyGrid, map_qos)
+        # Create TF listener
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
     
+    # Register ROS topic publishers
     def registerPublishers(self):
+        # Publish frontiers for RViz2 to display
         self.markerPub = self.create_publisher(MarkerArray, 'frontiers', qos_profile=QoSProfile(depth=1))
+        # Publish the robot's starting position, as determined by SLAM, to initialize Navigation2
         self.initial_pose_pub = self.create_publisher(PoseWithCovarianceStamped, 'initialpose', 10)
     
+    # Save the map when the topic updates
+    # and select the next target to drive to
     def handleOccupancyGrid(self, data):
         self.map = data
         self.get_logger().info("Scanning frontier.")
         self.getNextTarget()
     
+    # Run the frontier finder, generating a list of frontier points
+    # and select the next target for the robot to drive to.
     def getNextTarget(self):
         finder = FrontierFinder(self)
         if finder.noMoreFrontierPoints():
@@ -62,6 +73,7 @@ class Explorer(Node):
                 if oldTarget != self.target:
                     self.get_logger().info(f"Set target to {self.target.position.x}, {self.target.position.y}")
 
+    # Timer callback to check the TF tree for the robot's current pose
     def checkRobotPose(self):
         from_frame = 'base_link'
         to_frame = 'map'
@@ -85,6 +97,7 @@ class Explorer(Node):
             self.robotPose = None
         return
     
+    # Don't initialize Navigation2 until the robot's starting pose is determined.
     def waitForInitialPose(self):
         self.get_logger().info("Waiting for initial pose from TF...")
         while not self.robotPose:
