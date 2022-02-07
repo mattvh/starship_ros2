@@ -4,9 +4,7 @@ from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Pose, Point
 from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy
 from rclpy.qos import QoSProfile
-from rclpy.action import ActionClient
 from rclpy.duration import Duration
-from nav2_msgs.action import FollowWaypoints
 from visualization_msgs.msg import MarkerArray
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener 
@@ -14,8 +12,6 @@ from tf2_ros import TransformException
 
 from starship.frontierfinder import FrontierFinder
 from starship.navigator import Navigator
-
-import random
 
 
 class Explorer(Node):

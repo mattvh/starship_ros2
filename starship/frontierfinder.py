@@ -1,9 +1,8 @@
-from turtle import pos
 from starship.edgedetection import EdgeDetection
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 from std_msgs.msg import ColorRGBA
-from geometry_msgs.msg import Pose, Point, Quaternion
+from geometry_msgs.msg import Pose
 import math, sys
 
 class FrontierFinder:
