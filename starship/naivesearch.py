@@ -6,6 +6,7 @@ class NaiveSearch:
         self.node = node
         self.map = node.map
         self.frontierPoints = []
+        self.search()
     
     # Search for frontier points
     def search(self):
@@ -17,11 +18,12 @@ class NaiveSearch:
     # to area that has already been expored.
     # OccupancyGrid uses -1 for unexplored area, 0 for free, 1-100 for propability of obstacle
     def isFrontierPoint(self, i):
+        fThresh = 5 #fuzzing value, since the edge of explored space is usually non-zero
         if self.map.data[i] == -1: #point is unexplored
             adj = [i+1, i-1, i+self.map.info.width, i-self.map.info.width] #adjacent indices
             for p in adj:
                 if p >= 0 and p < len(self.map.data):
-                    if self.map.data[p] != -1 and self.map.data[p] < 5: #adjacent point is explored
+                    if self.map.data[p] != -1 and self.map.data[p] < fThresh: #adjacent point is explored
                         return True
         return False
     

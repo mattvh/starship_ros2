@@ -32,6 +32,7 @@ class Explorer(Node):
     def registerParameters(self):
         self.declare_parameter('drive', True)
         self.declare_parameter('altsearch', False)
+        self.altSearch = self.get_parameter('altsearch').get_parameter_value().bool_value
 
     # Register ROS topic subscribers
     def registerSubscribers(self):
@@ -57,7 +58,7 @@ class Explorer(Node):
     # and select the next target to drive to
     def handleOccupancyGrid(self, data):
         self.map = data
-        self.get_logger().info("Scanning frontier.")
+        self.get_logger().info("Scanning frontiers.")
         self.getNextTarget()
     
     # Run the frontier finder, generating a list of frontier points
@@ -65,8 +66,7 @@ class Explorer(Node):
     def getNextTarget(self):
         finder = FrontierFinder(self)
         if finder.noMoreFrontierPoints():
-            print("No more frontiers.")
-            exit()
+            self.get_logger().info("No more frontiers.")
         if len(finder.targetPoints) > 0:
             newTarget = finder.getNextTarget()
             if newTarget is not None:
@@ -113,7 +113,6 @@ def main(args=None):
     print('Starship initializing.')
     explorer = Explorer()
     drive = explorer.get_parameter('drive').get_parameter_value().bool_value
-    explorer.altSearch = explorer.get_parameter('altsearch').get_parameter_value().bool_value
     while rclpy.ok():
         rclpy.spin_once(explorer)
         if explorer.target and drive:
