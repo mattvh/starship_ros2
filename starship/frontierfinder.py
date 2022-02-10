@@ -87,6 +87,8 @@ class FrontierFinder:
             marker.scale.y = self.map.info.resolution * 2
             marker.scale.z = self.map.info.resolution * 2
             marker.color = ColorRGBA(r=1.0, g=0.0, b=0.0, a=1.0)
+            if self.targetPoints[i] == self.node.target:
+                marker.color = ColorRGBA(r=0.0, g=1.0, b=0.0, a=1.0)
             marker.pose.orientation.w = 1.0
             marker.pose.position = self.targetPoints[i].position
             markers.markers.append(marker)
