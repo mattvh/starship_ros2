@@ -21,6 +21,7 @@ class Explorer(Node):
         self.robotPose = None
         self.target = None
         self.altSearch = False
+        self.debug = False
         self.registerParameters()
         self.registerSubscribers()
         self.registerPublishers()
@@ -33,6 +34,7 @@ class Explorer(Node):
         self.declare_parameter('drive', True)
         self.declare_parameter('altsearch', False)
         self.altSearch = self.get_parameter('altsearch').get_parameter_value().bool_value
+        self.debug = self.get_parameter('debug').get_parameter_value().bool_value
 
     # Register ROS topic subscribers
     def registerSubscribers(self):

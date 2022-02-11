@@ -13,9 +13,10 @@ class EdgeDetection:
     
 
     def debugImage(self):
-        cv2.imshow("map", self.image)
-        cv2.imshow("edges", self.edges)
-        cv2.waitKey(1)
+        if self.node.debug:
+            cv2.imshow("map", self.image)
+            cv2.imshow("edges", self.edges)
+            cv2.waitKey(1)
     
 
     # Turn the OccupancyGrid into an OpenCV image/numpy array
