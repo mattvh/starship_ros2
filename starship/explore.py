@@ -33,6 +33,7 @@ class Explorer(Node):
     def registerParameters(self):
         self.declare_parameter('drive', True)
         self.declare_parameter('altsearch', False)
+        self.declare_parameter('debug', False)
         self.altSearch = self.get_parameter('altsearch').get_parameter_value().bool_value
         self.debug = self.get_parameter('debug').get_parameter_value().bool_value
 
