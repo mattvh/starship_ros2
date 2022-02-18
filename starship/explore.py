@@ -22,6 +22,9 @@ class Explorer(Node):
         self.target = None
         self.altSearch = False
         self.debug = False
+        self.map_topic = '/map'
+        self.base_frame = 'base_link'
+        self.map_frame = 'map'
         self.registerParameters()
         self.registerSubscribers()
         self.registerPublishers()
@@ -34,8 +37,14 @@ class Explorer(Node):
         self.declare_parameter('drive', True)
         self.declare_parameter('altsearch', False)
         self.declare_parameter('debug', False)
+        self.declare_parameter('map_topic', '/map')
+        self.declare_parameter('base_frame', 'base_link')
+        self.declare_parameter('map_frame', 'map')
         self.altSearch = self.get_parameter('altsearch').get_parameter_value().bool_value
         self.debug = self.get_parameter('debug').get_parameter_value().bool_value
+        self.map_topic = self.get_parameter('map_topic').get_parameter_value().string_value
+        self.base_frame = self.get_parameter('base_frame').get_parameter_value().string_value
+        self.map_frame = self.get_parameter('map_frame').get_parameter_value().string_value
 
     # Register ROS topic subscribers
     def registerSubscribers(self):
@@ -45,7 +54,7 @@ class Explorer(Node):
           reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_RELIABLE,
           history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
           depth=1)
-        self.create_subscription(OccupancyGrid(), '/map', self.handleOccupancyGrid, map_qos)
+        self.create_subscription(OccupancyGrid(), self.map_topic, self.handleOccupancyGrid, map_qos)
         # Create TF listener
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -80,8 +89,8 @@ class Explorer(Node):
 
     # Timer callback to check the TF tree for the robot's current pose
     def checkRobotPose(self):
-        from_frame = 'base_link'
-        to_frame = 'map'
+        from_frame = self.base_frame
+        to_frame = self.map_frame
         try:
             now = rclpy.time.Time()
             dur = Duration()

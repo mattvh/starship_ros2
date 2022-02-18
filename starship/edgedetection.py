@@ -52,7 +52,7 @@ class EdgeDetection:
         obs = cv2.bitwise_not(obs)
         kernel = np.ones((3,3), np.uint8)
         obs = cv2.dilate(obs, kernel, iterations=1)
-        #Bitwise and the mask and the edges to remove the non-frontier edges
+        #Bitwise AND the mask with the edges to remove the non-frontier edges
         edges = cv2.bitwise_and(cv2.bitwise_not(obs), edges)
         edges = self.denoise(edges)
         return edges
