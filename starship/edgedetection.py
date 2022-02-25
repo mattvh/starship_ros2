@@ -54,28 +54,35 @@ class EdgeDetection:
         obs = cv2.dilate(obs, kernel, iterations=1)
         #Bitwise AND the mask with the edges to remove the non-frontier edges
         edges = cv2.bitwise_and(cv2.bitwise_not(obs), edges)
-        edges = self.denoise(edges)
+        edges = self.removeStrays(edges)
         return edges
     
 
     # Remove stray pixels that don't have adjacent edge pixels
-    def denoise(self, img):
-        height, width = img.shape
-        for y in range(0, height-1):
-            for x in range(0, width-1):
-                if img[y,x] == 255:
-                    adjPix = 0
-                    for p in self.adjacentPixels(x, y):
-                        if img[p[1], p[0]] == 255:
-                            adjPix += 1
-                    if adjPix < 1:
-                        img[y,x] = 0
-        return img
+    def removeStrays(self, img):
+        img_adj = self.createNeighborArray(img)
+        adjPix = img_adj.sum(axis=0)
+        img_cp = img.copy()
+        img_cp[adjPix < 1] = 0
+        return img_cp
     
 
-    # Returns the eight pixels surrounding a given pixel
-    def adjacentPixels(self, x, y):
-        return [(x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1,y+1), (x-1,y-1), (x+1,y-1), (x-1,y+1)]
+    # Create neighbor array for removeStrays()
+    def createNeighborArray(self, img):
+        img_adj = np.zeros((8, *img.shape), dtype=img.dtype) # 8-nbr-hood array
+        count = 0
+        for r_shift in [-1, 0, 1]:
+            for c_shift in [-1, 0, 1]:
+                if r_shift == 0 and c_shift == 0:
+                    continue
+                else:
+                    img_adj[count,
+                            max(r_shift, 0):(r_shift if r_shift < 0 else None),
+                            max(c_shift, 0):(c_shift if c_shift < 0 else None)
+                    ] = img[max(-r_shift, 0):(-r_shift if -r_shift < 0 else None),
+                            max(-c_shift, 0):(-c_shift if -c_shift < 0 else None)]
+                    count += 1
+        return img_adj
     
 
     # Turn the edge lines into larger solids with dilate(), then find the centroids.
