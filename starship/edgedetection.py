@@ -106,13 +106,11 @@ class EdgeDetection:
     # Convert the edge pixels to ROS Poses
     def toPoses(self):
         poses = []
-        height, width = self.edges.shape
-        res = self.map.info.resolution
-        for mapY in range(0, height-1):
-            for mapX in range(0, width-1):
-                if self.edges[mapY, mapX] != 0:
-                    pose = self.pixelToPose(mapX, mapY)
-                    poses.append(pose)
+        indices = np.where(self.edges != [0])
+        coords = zip(indices[0], indices[1])
+        for pixel in coords:
+            pose = self.pixelToPose(pixel[1], pixel[0])
+            poses.append(pose)
         return poses
     
 
