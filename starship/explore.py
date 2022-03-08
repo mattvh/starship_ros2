@@ -1,4 +1,5 @@
 import rclpy
+import sys
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Pose, Point
@@ -75,12 +76,13 @@ class Explorer(Node):
     
     # Run the frontier finder, generating a list of frontier points
     # and select the next target for the robot to drive to.
-    def getNextTarget(self):
+    def getNextTarget(self, skipTarget=False):
         finder = FrontierFinder(self)
         if finder.noMoreFrontierPoints():
             self.get_logger().info("No more frontiers.")
+            sys.exit(0)
         if len(finder.targetPoints) > 0:
-            newTarget = finder.getNextTarget()
+            newTarget = finder.getNextTarget(skipTarget=skipTarget)
             if newTarget is not None:
                 oldTarget = self.target
                 self.target = newTarget

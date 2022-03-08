@@ -21,13 +21,19 @@ class FrontierFinder:
         self.publishMarkers()
     
     # Find the nearest pose in the list to the robot's position
-    def getNearestPose(self, poses):
+    def getNearestPose(self, poses, skipTarget=False):
         if self.node.robotPose == None:
             return None
         start = self.node.robotPose.pose
         nearest = None
         nearestDist = sys.float_info.max
         for pose in poses:
+            # If skipping the last target, and it's this one, continue
+            if skipTarget is not False:
+                skDist = math.hypot(skipTarget.position.x-pose.position.x, skipTarget.position.y-pose.position.y)
+                if (skDist < 0.001):
+                    continue
+            # Check if this pose is nearer than the preivous nearest
             dist = math.hypot(start.position.x-pose.position.x, start.position.y-pose.position.y)
             if (dist < nearestDist) and (dist > (self.map.info.resolution * self.minDriveUnits)):
                 nearest = pose
@@ -35,8 +41,8 @@ class FrontierFinder:
         return nearest
     
     # Public method to get the next target to drive to
-    def getNextTarget(self):
-        return self.getNearestPose(self.targetPoints)
+    def getNextTarget(self, skipTarget=False):
+        return self.getNearestPose(self.targetPoints, skipTarget)
     
     # If there are no more frontier points, we've explored the whole area
     def noMoreFrontierPoints(self):

@@ -70,7 +70,7 @@ class Navigator:
     def checkIfNavigationAborted(self):
         if self.status != None and self.status != GoalStatus.STATUS_SUCCEEDED:
             self.node.get_logger().info("Navigation unsuccessful. Getting new target.")
-            self.node.getNextTarget()
+            self.node.getNextTarget(skipTarget=self.node.target)
     
     # Callback to store current feedback from nav2
     def handleUpdates(self, msg):
