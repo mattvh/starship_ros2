@@ -46,7 +46,7 @@ class FrontierFinder:
     
     # If there are no more frontier points, we've explored the whole area
     def noMoreFrontierPoints(self):
-        return len(self.frontierPoints) < 1
+        return len(self.targetPoints) < 1
     
     # Publish a MarkerArray to visualize frontier points in RViz2
     def publishMarkers(self):
