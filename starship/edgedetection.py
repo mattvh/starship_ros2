@@ -1,4 +1,5 @@
 import cv2
+import math
 import numpy as np
 from geometry_msgs.msg import Pose
 
@@ -9,6 +10,7 @@ class EdgeDetection:
         self.occupiedThresh = 50
         self.image = self.getImage()
         self.edges = self.edgeDetection()
+        self.inflationMap = self.obstacleInflation()
         self.debugImage()
     
 
@@ -16,6 +18,8 @@ class EdgeDetection:
         if self.node.debug:
             cv2.imshow("map", self.image)
             cv2.imshow("edges", self.edges)
+            if self.inflationMap is not None:
+                cv2.imshow("inflation", self.inflationMap)
             cv2.waitKey(1)
     
 
@@ -85,6 +89,25 @@ class EdgeDetection:
         return img_adj
     
 
+    # Handle the inflation layer on Navigation2's global costmap.
+    # This is used to avoid picking points that Nav2 will not be able to drive to.
+    def obstacleInflation(self):
+        if self.node.navCostmap is None:
+            return None
+        costmap = self.node.navCostmap
+        img = np.asarray(costmap.data, dtype=np.int16).reshape(costmap.metadata.size_y, costmap.metadata.size_x)
+        mask_obs = np.logical_and(img > 252, img < 255)
+        mask_free = np.logical_and(img >= 0, img < 252)
+        img[mask_free] = 255
+        img[mask_obs] = 0
+        return img.astype(np.uint8)
+    
+
+    # Returns true if a given coordinate is within the Navigation2 inflation layer.
+    def pointInInflationLayer(self, x, y):
+        return (self.inflationMap is not None) and (self.inflationMap[y, x] == 0)
+    
+
     # Turn the edge lines into larger solids with dilate(), then find the centroids.
     # This returns better points to drive to than simply picking the nearest frontier point.
     def targetPoints(self):
@@ -99,6 +122,8 @@ class EdgeDetection:
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
             cv2.circle(img, (cX, cY), 3, (255, 0, 0), -1)
+            if (self.pointInInflationLayer(cX, cY)):
+                continue
             targets.append(self.pixelToPose(cX, cY))
         return targets
 

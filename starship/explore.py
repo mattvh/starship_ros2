@@ -2,6 +2,7 @@ import rclpy
 import sys
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid
+from nav2_msgs.msg import Costmap
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Pose, Point
 from rclpy.qos import QoSDurabilityPolicy, QoSHistoryPolicy, QoSReliabilityPolicy
 from rclpy.qos import QoSProfile
@@ -19,6 +20,7 @@ class Explorer(Node):
     def __init__(self):
         super().__init__('explorer')
         self.map = OccupancyGrid()
+        self.navCostmap = None
         self.robotPose = None
         self.target = None
         self.altSearch = False
@@ -56,6 +58,7 @@ class Explorer(Node):
           history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
           depth=1)
         self.create_subscription(OccupancyGrid(), self.map_topic, self.handleOccupancyGrid, map_qos)
+        self.create_subscription(Costmap(), "/global_costmap/costmap_raw", self.handleNavCostmap, map_qos)
         # Create TF listener
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -73,6 +76,11 @@ class Explorer(Node):
         self.map = data
         self.get_logger().info("Scanning frontiers.")
         self.getNextTarget()
+    
+    # Save the Navigation2 global planner costmap.
+    # This is used to avoid picking targets in the inflation radius.
+    def handleNavCostmap(self, data):
+        self.navCostmap = data
     
     # Run the frontier finder, generating a list of frontier points
     # and select the next target for the robot to drive to.
