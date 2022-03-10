@@ -105,7 +105,11 @@ class EdgeDetection:
 
     # Returns true if a given coordinate is within the Navigation2 inflation layer.
     def pointInInflationLayer(self, x, y):
-        return (self.inflationMap is not None) and (self.inflationMap[y, x] == 0)
+        if self.inflationMap is None:
+            return False
+        if y >= self.inflationMap.shape[0] or x >= self.inflationMap.shape[1]:
+            return False
+        return self.inflationMap[y, x] == 0
     
 
     # Turn the edge lines into larger solids with dilate(), then find the centroids.
