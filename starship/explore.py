@@ -1,5 +1,6 @@
 import rclpy
 import sys
+import time
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid
 from nav2_msgs.msg import Costmap
@@ -19,6 +20,7 @@ from starship.navigator import Navigator
 class Explorer(Node):
     def __init__(self):
         super().__init__('explorer')
+        self.startTime = time.time()
         self.map = OccupancyGrid()
         self.navCostmap = None
         self.robotPose = None
@@ -88,6 +90,8 @@ class Explorer(Node):
         finder = FrontierFinder(self)
         if finder.noMoreFrontierPoints():
             self.get_logger().info("No more frontiers.")
+            endTime = time.time()
+            self.get_logger().info(f"Run time: {endTime - self.startTime} sec")
             sys.exit(0)
         if len(finder.targetPoints) > 0:
             newTarget = finder.getNextTarget(skipTarget=skipTarget)
