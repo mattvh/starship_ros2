@@ -4,7 +4,7 @@ This package implements frontier detection and environmental exploration for the
 
 Starship processes map data from SLAM with OpenCV, using Canny Edge Detection and then processing the results to quickly find the edge of explored space and target the center of each frontier line.
 
-![Starship running on a physical Turtlebot with Cartographer](https://user-images.githubusercontent.com/158727/163621522-48faeefd-c127-473e-a7b8-accd908b07be.mp4)
+https://user-images.githubusercontent.com/158727/163621522-48faeefd-c127-473e-a7b8-accd908b07be.mp4
 
 ### Turtlebot3 Operation
 
