@@ -49,7 +49,7 @@ class Navigator:
     def isNavComplete(self):
         if not self.resultFuture:
             return True
-        rclpy.spin_until_future_complete(self.node, self.resultFuture, timeout_sec=0.10)
+        rclpy.spin_until_future_complete(self.node, self.resultFuture, timeout_sec=1.00)
         if self.resultFuture.result():
             self.status = self.resultFuture.result().status
             if self.status != GoalStatus.STATUS_SUCCEEDED:

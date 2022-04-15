@@ -123,6 +123,8 @@ class EdgeDetection:
         contours, hierarchy = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for c in contours:
             M = cv2.moments(c)
+            if M["m00"] == 0:
+                continue # fix for division by zero error
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
             cv2.circle(img, (cX, cY), 3, (255, 0, 0), -1)
